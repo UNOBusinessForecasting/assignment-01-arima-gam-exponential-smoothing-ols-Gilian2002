@@ -32,7 +32,7 @@ class testCases(unittest.TestCase):
             if modelFit._is_fitted:
                 self.assertTrue(True)
         elif hasattr(modelFit, 'history'):
-            self.assertTrue(bool(modelFit.history))
+            self.assertTrue(isinstance(modelFit.history, pd.DataFrame))
         else:
             print("Make sure that you store your fitted model in the variable 'modelFit'.")
             self.assertTrue(False)
