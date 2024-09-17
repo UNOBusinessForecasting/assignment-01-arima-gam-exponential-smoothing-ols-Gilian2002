@@ -4,7 +4,7 @@ from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing
 import plotly.graph_objects as go
 
 # Load the dataset
-data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_train.csv")
+data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_test.csv")
 data['Timestamp'] = pd.to_datetime(data['Timestamp'])
 data.set_index('Timestamp', inplace=True)
 print(data.head())
