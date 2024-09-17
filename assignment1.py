@@ -1,48 +1,71 @@
+!pip install prophet # Only use this line if prophet is not already installed
+
 import pandas as pd
-import statsmodels.api as sm
-import plotly.express as px
+from prophet import Prophet
 
-# Load your dataset (directly from the URL as specified)
 data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_train.csv")
-print(data.head())
+data.head()
 
-# Clean up the data if needed (you can modify this based on any specific cleaning steps required)
-data = data[['Timestamp', 'trips']]  # Only keep relevant columns
-data['Timestamp'] = pd.to_datetime(data['Timestamp'])  # Convert Timestamp to datetime format
+import statsmodels.formula.api as smf
+reg = smf.ols("trips ~ hour", data=data)
 
-# Plot the raw data
-fig = px.scatter(data, x='Timestamp', y='trips', title='Number of Taxi Trips Over Time')
-fig.show()
+reg = reg.fit()
 
-# Set 'Timestamp' as the index and ensure the data is sorted
-data.set_index('Timestamp', inplace=True)
-data = data.sort_index()
+reg.summary()
 
-# Let's grab the last 20% of the data for testing and the first 80% for training
-train_size = int(len(data) * 0.8)
-train_data = data.iloc[:train_size]
-test_data = data.iloc[train_size:]
+import pandas as pd
+import plotly.express as px
+from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing
 
-# Implement an ARIMA model (order can be adjusted based on data analysis, using ARIMA(1, 0, 0) for simplicity)
-arima_model = sm.tsa.ARIMA(train_data['trips'], order=(1, 0, 0)).fit()
+data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_train.csv")
+data['Timestamp'] = pd.to_datetime(data['Timestamp'])
+print(data)
+px.line(data, x="Timestamp", y='trips')
 
-# Forecast the test period (predict the number of trips)
-pred = arima_model.forecast(steps=len(test_data))
+employment = data['trips']
+employment.index = data['Timestamp']
+employment.index.freq = employment.index.inferred_freq
 
-# Create a new DataFrame to compare actual and predicted values
-test_results = pd.DataFrame({
-    'Timestamp': test_data.index,
-    'Actual Trips': test_data['trips'],
-    'Predicted Trips': pred
-})
+alpha020 = SimpleExpSmoothing(employment).fit(
+                                        smoothing_level=0.2,
+                                        optimized=False)
 
-# Plot the predictions against actual test data
-fig = px.line(test_results, x='Timestamp', y=['Actual Trips', 'Predicted Trips'], title='Actual vs Predicted Taxi Trips')
-fig.show()
+alpha050 = SimpleExpSmoothing(employment).fit(
+                                        smoothing_level=0.5,
+                                        optimized=False)
 
-# Function to return the model, modelFit, and predictions
-def get_model_results():
-    """
-    Returns the model, fitted model, and predictions for test-valid-model.
-    """
-    return arima_model, arima_model, pred
+alpha080 = SimpleExpSmoothing(employment).fit(
+                                        smoothing_level=0.8,
+                                        optimized=False)
+
+forecast020 = alpha020.forecast(3)
+forecast050 = alpha050.forecast(3)
+forecast080 = alpha080.forecast(3)
+
+import plotly.graph_objects as go
+
+# Plotting our data
+
+smoothData = pd.DataFrame([employment.values, alpha020.fittedvalues.values,  alpha050.fittedvalues.values,  alpha080.fittedvalues.values]).T
+smoothData.columns = ['Truth', 'alpha=0.2', 'alpha=0.5', 'alpha=0.8']
+smoothData.index = employment.index
+
+fig = px.line(smoothData, y = ['Truth', 'alpha=0.2', 'alpha=0.5', 'alpha=0.8'],
+        x = smoothData.index,
+        color_discrete_map={"Truth": 'blue',
+                           'alpha=0.2': 'red',
+                            'alpha=0.5':'green',
+                            'alpha=0.8':'purple'}
+       )
+
+# Dynamically set x-axis and y-axis ranges
+fig.update_xaxes(range=[smoothData.index[-50], forecast020.index[-1]])
+fig.update_yaxes(range=[smoothData['Truth'].min() - 1000, smoothData['Truth'].max() + 1000])
+
+
+
+# Incorporating the Forecasts
+
+fig.add_trace(go.Scatter(x=forecast020.index, y = forecast020.values, name='Forecast alpha=0.2', line={'color':'red'}))
+fig.add_trace(go.Scatter(x=forecast050.index, y = forecast050.values, name='Forecast alpha=0.5', line={'color':'green'}))
+fig.add_trace(go.Scatter(x=forecast080.index, y = forecast080.values, name='Forecast alpha=0.8', line={'color':'purple'}))
