@@ -1,10 +1,9 @@
 
-module = __import__(smoothData)
 
 import pandas as pd
 from prophet import Prophet
 
-data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_test.csv")
+data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_train.csv")
 data.head()
 
 import statsmodels.formula.api as smf
@@ -18,30 +17,30 @@ import pandas as pd
 import plotly.express as px
 from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing
 
-data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_train.csv")
+#data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_train.csv")
 data['Timestamp'] = pd.to_datetime(data['Timestamp'])
 print(data)
 px.line(data, x="Timestamp", y='trips')
 
-employment = data['trips']
-employment.index = data['Timestamp']
-employment.index.freq = employment.index.inferred_freq
+taxi = data['trips']
+taxi.index = data['Timestamp']
+taxi.index.freq = taxi.index.inferred_freq
 
-alpha020 = SimpleExpSmoothing(employment).fit(
+alpha020 = SimpleExpSmoothing(taxi).fit(
                                         smoothing_level=0.2,
                                         optimized=False)
 
-alpha050 = SimpleExpSmoothing(employment).fit(
+alpha050 = SimpleExpSmoothing(taxi).fit(
                                         smoothing_level=0.5,
                                         optimized=False)
 
-alpha080 = SimpleExpSmoothing(employment).fit(
+alpha080 = SimpleExpSmoothing(taxi).fit(
                                         smoothing_level=0.8,
                                         optimized=False)
 
-forecast020 = alpha020.forecast(3)
-forecast050 = alpha050.forecast(3)
-forecast080 = alpha080.forecast(3)
+forecast020 = alpha020.forecast(744)
+forecast050 = alpha050.forecast(744)
+forecast080 = alpha080.forecast(744)
 
 import plotly.graph_objects as go
 
