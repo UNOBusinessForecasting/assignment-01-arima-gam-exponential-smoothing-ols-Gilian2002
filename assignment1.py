@@ -1,4 +1,5 @@
 !pip install prophet # Only use this line if prophet is not already installed
+module = __import__(smoothData)
 
 import pandas as pd
 from prophet import Prophet
