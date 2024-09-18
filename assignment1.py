@@ -1,34 +1,29 @@
+
 import statsmodels.formula.api as smf
 import pandas as pd
 
-# Load training data
 data = pd.read_csv("https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_train.csv")
 
-# Preview data
-print(data.head())
+#explore the data
+data.head()
 
-# Fit the OLS (Ordinary Least Squares) model using 'hour' as the independent variable
+#Select the data, - assign 1
 model = smf.ols("trips ~ hour", data=data)
-model_fit = model.fit()
 
-# Display the summary of the fitted model
-print(model_fit.summary())
+modelFit = model.fit()
 
-# Load test data and only select the 'hour' column
+modelFit.summary()
+print(modelFit.summary())
+
+#use the test_data
 test_data = pd.read_csv('https://github.com/dustywhite7/econ8310-assignment1/raw/main/assignment_data_test.csv')
 test_data = test_data[['hour']]
+test_data.head(10)
 
-# Preview the test data
-print(test_data.head())
+#Predict with the test data if it fits.
+#(See source github open public model fitting, for not work adjust data input)
+pred = modelFit.predict(test_data)
 
-# Use the fitted model to predict the 'trips' based on the 'hour' from the test data
-predictions = model_fit.predict(test_data)
+print(pred)
 
-# Output predictions
-print(predictions)
 
-# Optional: Save predictions to CSV file for further use
-test_data['Predicted_Trips'] = predictions
-test_data.to_csv('predicted_trips.csv', index=False)
-
-print("Predictions saved to 'predicted_trips.csv'")
